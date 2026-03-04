@@ -1,86 +1,91 @@
+import './App.css';
 import { useState, useEffect } from 'react';
 
 function App() {
-
   const [book, setBook] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-  setBook([
-    {
-      id: 1,
-      title: "Naruto Vol.1",
-      author: "Masashi Kishimoto",
-      price: 9.99,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781569319000-L.jpg"
-    },
-    {
-      id: 2,
-      title: "One Piece Vol.1",
-      author: "Eiichiro Oda",
-      price: 10.5,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781569319017-L.jpg"
-    },
-    {
-      id: 3,
-      title: "Attack on Titan Vol.1",
-      author: "Hajime Isayama",
-      price: 11.2,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781612620244-L.jpg"
-    },
-    {
-      id: 4,
-      title: "Demon Slayer Vol.1",
-      author: "Koyoharu Gotouge",
-      price: 8.75,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781974700523-L.jpg"
-    },
-    {
-      id: 5,
-      title: "Jujutsu Kaisen Vol.1",
-      author: "Gege Akutami",
-      price: 9.5,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781974710027-L.jpg"
-    },
-    {
-      id: 6,
-      title: "Chainsaw Man Vol.1",
-      author: "Tatsuki Fujimoto",
-      price: 9.2,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781974709939-L.jpg"
-    },
-    {
-      id: 7,
-      title: "My Hero Academia Vol.1",
-      author: "Kohei Horikoshi",
-      price: 10.1,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781421582696-L.jpg"
-    },
-    {
-      id: 8,
-      title: "Bleach Vol.1",
-      author: "Tite Kubo",
-      price: 9.8,
-      image_url: "https://covers.openlibrary.org/b/isbn/9781591164418-L.jpg"
-    }
-  ]);
-}, []);
-//
-  const bookList = book.map(b => (
-    <li key={b.id} style={{ marginBottom: "30px" }}>
-      <h3>{b.title}</h3>
-      <img src={b.image_url} alt={b.title} width="150" />
-      <p>{b.author}</p>
-      <p>${b.price}</p>
-    </li>
-  ));
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch(
+          "https://cuddly-space-disco-wrg6wwjq4p7425vrw-5000.app.github.dev/books"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const data = await response.json();
+        setBook(data.books);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  // filter search
+  const filteredBooks = book.filter((b) =>
+    b.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div style={{ textAlign: "center" }}>
-      <h1>Welcome to Anime Ebook</h1>
-      <ol style={{ listStyle: "none", padding: 0 }}>
-        {bookList}
-      </ol>
-    </div>
+    <>
+      {/* ===== HEADER ===== */}
+      <header className="header">
+        <div className="logo">📚 Anime Books</div>
+        <nav className="nav">
+          <button>Home</button>
+          <button>Genres</button>
+          <button>Top Sales</button>
+          <button>Contact</button>
+        </nav>
+        <input
+          type="text"
+          placeholder="Search books..."
+          className="search-box"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </header>
+
+      {/* ===== MAIN ===== */}
+      <div className="container">
+        <h1 className="title">Welcome To Anime Books</h1>
+
+        {loading && <p>Loading...</p>}
+        {error && <p>Error: {error}</p>}
+
+        <div className="book-grid">
+          {filteredBooks.map((b) => (
+            <div key={b.id} className="book-card">
+              <img
+                src={b.image_url}
+                alt={b.title}
+                className="book-image"
+              />
+              <div className="book-info">
+                <h3>{b.title}</h3>
+                <p className="author">{b.author}</p>
+                <p className="price">${b.price}</p>
+                <button className="buy-btn">Add to Cart</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ===== FOOTER ===== */}
+      <footer className="footer">
+        © 2026 Anime Books | Made with ❤️ for Otaku
+      </footer>
+    </>
   );
 }
 
